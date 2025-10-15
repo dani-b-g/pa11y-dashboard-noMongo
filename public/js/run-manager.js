@@ -165,13 +165,21 @@
     $(document).ready(function() {
         // Find run links on both tasks list and detail pages
         $(document).on('click', 'a[data-test="run-task"]', function(event) {
-            // Only intercept if the link points to a local run (/:id/run)
+            // Only intercept if the link points to a task run (/:id/run) optionally
+            // followed by query parameters or a hash. We match any path ending
+            // with "/run" and ignore additional query or hash fragments. This
+            // prevents the server-side run endpoint from being called when
+            // there are query strings (e.g. ?running) on the URL. The regex
+            // tests for "/<id>/run" followed by zero or more characters
+            // beginning with ? or #.
             const href = $(this).attr('href');
-            if (href && /\/[^\/]+\/run$/.test(href)) {
+            if (href && /\/[^\/]+\/run(?:[?#].*)?$/.test(href)) {
                 event.preventDefault();
-                const parts = href.split('/');
-                // Expect ['', taskId, 'run']
-                const taskId = parts[1];
+                // Extract the task ID from the path portion of the href. We
+                // split on '/' and take the second segment. For example,
+                // '/abc123/run?running=1' => ['', 'abc123', 'run?running=1'].
+                const segments = href.split('/');
+                const taskId = segments.length > 1 ? segments[1] : null;
                 if (taskId) {
                     runTask(taskId);
                 }

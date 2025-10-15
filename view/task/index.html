@@ -49,7 +49,7 @@ along with Pa11y Dashboard.  If not, see <http://www.gnu.org/licenses/>.
 			<strong>Rule ignored!</strong>
 			<p>
 				You've ignored an accessibility rule for this URL.
-				<a href="{{task.hrefRun}}">Click here to generate results with the ignored rule excluded</a>
+                <a href="{{task.hrefRun}}" data-test="run-task">Click here to generate results with the ignored rule excluded</a>
 			</p>
 		</div>
 	</div>
@@ -62,7 +62,7 @@ along with Pa11y Dashboard.  If not, see <http://www.gnu.org/licenses/>.
 			<strong>Rule unignored!</strong>
 			<p>
 				You've removed an ignored accessibility rule for this URL.
-				<a href="{{task.hrefRun}}">Click here to generate results with the ignored rule included again</a>
+                <a href="{{task.hrefRun}}" data-test="run-task">Click here to generate results with the ignored rule included again</a>
 			</p>
 		</div>
 	</div>
@@ -87,7 +87,7 @@ along with Pa11y Dashboard.  If not, see <http://www.gnu.org/licenses/>.
 		<div class="alert alert-info">
 			<h4>There are no results to show</h4>
 			<p>Pa11y has not been run against this URL yet so there are no results to show.</p>
-			<p><a href="{{task.hrefRun}}">Click here to generate results for this URL</a>.</p>
+			<p><a href="{{task.hrefRun}}" data-test="run-task">Click here to generate results for this URL</a>.</p>
 		</div>
 	</div>
 {{/if}}
