@@ -70,13 +70,15 @@ along with Pa11y Dashboard.  If not, see <http://www.gnu.org/licenses/>.
 
 {{> task-header}}
 
-{{#if results}}
-
-	{{#unless hasOneResult}}
-		{{> graph}}
-	{{/unless}}
-
-{{/if}}
+{{!--
+    Always render the graph container. The graph will be populated
+    client‑side from either server results or persisted results. The
+    original behaviour only rendered the graph when the server had
+    multiple results. In the IndexedDB version, we may have results
+    persisted in the browser which are not known to the server. The
+    graph‑sync script populates the table and draws the chart.
+--}}
+{{> graph}}
 
 {{#if mainResult}}
 	{{> result}}
