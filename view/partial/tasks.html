@@ -29,8 +29,8 @@ along with Pa11y Dashboard.  If not, see <http://www.gnu.org/licenses/>.
 			</a>
 		</li>
 	{{/unless}}
-	{{#each tasks}}
-		<li class="col-md-4 col-sm-6 task-card" data-test="task" data-role="task" data-keywords="{{lowercase name}} {{lowercase standard}} {{simplify-url url}}">
+    {{#each tasks}}
+        <li class="col-md-4 col-sm-6 task-card" data-test="task" data-role="task" data-task-id="{{id}}" data-keywords="{{lowercase name}} {{lowercase standard}} {{simplify-url url}}">
 			<a class="well task-card-link crunch-bottom" title="Details for URL {{simplify-url url}}" href="{{href}}">
 				<div class="gridview">
 					<p class="h3">{{name}}</p>
