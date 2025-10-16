@@ -55,15 +55,65 @@
         const countP = $('<p>', {class: 'h5', text: 'Total runs: ' + results.length});
         historyDiv.append(countP);
         const list = $('<ul>', {class: 'list-unstyled'});
+        // Build each history item with a clickable anchor. Each anchor
+        // carries a data attribute with its index so that a click
+        // handler can render the corresponding result via
+        // window.renderLocalResult. The summary includes a formatted
+        // date and counts of issues.
         results.forEach((res, index) => {
             const li = $('<li>');
             const summary = formatDate(res.date) + ' — ' + res.count.error + ' errors, ' + res.count.warning + ' warnings, ' + res.count.notice + ' notices';
-            li.text((index + 1) + '. ' + summary);
+            const link = $('<a>', {
+                href: '#',
+                'data-result-index': index,
+                text: (index + 1) + '. ' + summary,
+                // Indicate that the summary is clickable
+                style: 'cursor: pointer;'
+            });
+            li.append(link);
             list.append(li);
         });
         historyDiv.append(list);
         // Insert after the task header
         historyDiv.insertAfter(header);
+    }
+
+    /**
+     * Attach click handlers to the run history list. Clicking a history
+     * item will render the corresponding result via the global
+     * renderLocalResult function (if defined). It also highlights
+     * the active item. The first item is highlighted by default.
+     *
+     * @param {Array<Object>} results An array of result objects for the task
+     */
+    function attachHistoryClick(results) {
+        const list = $('#task-history ul');
+        if (!list.length) {
+            return;
+        }
+        // Find all clickable anchors inside the history list
+        const links = list.find('a[data-result-index]');
+        // Set default highlight on the first link. Also adjust font
+        // weight to indicate selection.
+        links.removeClass('active');
+        links.css('font-weight', 'normal');
+        links.first().addClass('active');
+        links.first().css('font-weight', 'bold');
+        links.each(function() {
+            $(this).on('click', function(evt) {
+                evt.preventDefault();
+                const idx = parseInt($(this).attr('data-result-index'), 10);
+                // Highlight the selected link: reset others to normal
+                links.removeClass('active');
+                links.css('font-weight', 'normal');
+                $(this).addClass('active');
+                $(this).css('font-weight', 'bold');
+                // Render the selected result if possible
+                if (typeof window.renderLocalResult === 'function' && results && results[idx]) {
+                    window.renderLocalResult(results[idx]);
+                }
+            });
+        });
     }
 
     /**
@@ -167,6 +217,10 @@
             updateLastRunDate(results[0]);
             // Render history list
             renderHistory(results);
+            // Attach click handlers to allow selecting runs and
+            // rendering their details. This should occur after the
+            // history list has been inserted into the DOM.
+            attachHistoryClick(results);
             // Also update header details in case the server rendered placeholders
             Pa11yPersistence.getTask(taskId).then(function(t) {
                 updateHeaderFromTask(t);
