@@ -8,64 +8,86 @@ the Free Software Foundation, either version 3 of the License, or
 
 Pa11y Dashboard is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Pa11y Dashboard.  If not, see <http://www.gnu.org/licenses/>.
+along with Pa11y Dashboard. If not, see
+<http: //www.gnu.org/licenses />.
 }}
+<!-- patch test comment -->
 <div class="col-md-12 task-card clearfix">
 	<button class="btn view-btn btn-grid btn-default"><i class="glyphicon glyphicon-th"></i> Grid</button>
 	<button class="btn view-btn btn-list"><i class="glyphicon glyphicon-align-justify "></i> List</button>
 
+	{{!-- Buttons to export and import local IndexedDB data. These actions
+	allow users to back up their locally persisted tasks and results,
+	and restore them at a later time. The associated script attaches
+	click handlers to trigger the export or prompt for import. --}}
+	<div class="btn-group pull-right db-export-import" role="group" aria-label="export import persistence data">
+		<button type="button" class="btn view-btn btn-list" data-role="export-db"
+			title="Export persisted data to a JSON file">
+			<i class="glyphicon glyphicon-download"></i> Export Data
+		</button>
+		<button type="button" class="btn view-btn btn-default" data-role="import-db"
+			title="Import persisted data from a JSON file">
+			<i class="glyphicon glyphicon-upload"></i> Import Data
+		</button>
+		<input type="file" id="db-import-file" accept="application/json" style="display:none" />
+	</div>
 </div>
 <ul class="list-unstyled clearfix crunch-bottom" id="grid-container">
 
 	{{#unless readonly}}
-		<li class="col-md-4 col-sm-6 task-card add-task">
-			<a class="well task-card-link crunch-bottom" data-role="add-task" href="/new" data-test="add-task">
-				<p class="h3 crunch">Add new URL</p>
-				<p class="supersize-me crunch" aria-hidden="true">+</p>
-			</a>
-		</li>
+	<li class="col-md-4 col-sm-6 task-card add-task">
+		<a class="well task-card-link crunch-bottom" data-role="add-task" href="/new" data-test="add-task">
+			<p class="h3 crunch">Add new URL</p>
+			<p class="supersize-me crunch" aria-hidden="true">+</p>
+		</a>
+	</li>
 	{{/unless}}
-    {{#each tasks}}
-        <li class="col-md-4 col-sm-6 task-card" data-test="task" data-role="task" data-task-id="{{id}}" data-keywords="{{lowercase name}} {{lowercase standard}} {{simplify-url url}}">
-			<a class="well task-card-link crunch-bottom" title="Details for URL {{simplify-url url}}" href="{{href}}">
-				<div class="gridview">
-					<p class="h3">{{name}}</p>
-					<p class="h4">{{simplify-url url}}</p>
-					<p class="h5">({{standard}})</p>
-				</div>
+	{{#each tasks}}
+	<li class="col-md-4 col-sm-6 task-card" data-test="task" data-role="task" data-task-id="{{id}}"
+		data-keywords="{{lowercase name}} {{lowercase standard}} {{simplify-url url}}">
+		<a class="well task-card-link crunch-bottom" title="Details for URL {{simplify-url url}}" href="{{href}}">
+			<div class="gridview">
+				<p class="h3">{{name}}</p>
+				<p class="h4">{{simplify-url url}}</p>
+				<p class="h5">({{standard}})</p>
+			</div>
 
-				{{#if lastResult}}
-				<div class="gridview">
-					<ul class="clearfix list-unstyled floated-list task-stats">
-						{{#lastResult}}
-							<li class="danger" title="Number of errors ({{count.error}})">{{count.error}}<span class="stat-type">Errors</span></li>
-							<li class="warning" title="Number of warnings ({{count.warning}})">{{count.warning}}<span class="stat-type">Warnings</span></li>
-							<li class="info last" title="Number of notices ({{count.notice}})">{{count.notice}}<span class="stat-type">Notices</span></li>
-						{{/lastResult}}
-					</ul>
-				</div>
-				<div class="last-run">Last run {{date-format lastResult.date format="DD MMM YYYY"}}</div>
-				{{else}}
-					<p class="no-results">No results</p>
-				{{/if}}
-			</a>
-			{{#unless ../readonly}}
-				<div class="btn-group options-button text-right">
-					<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown"><span class="sr-only">Options</span><span class="glyphicon glyphicon-cog"></span></button>
-					<nav class="dropdown-menu pull-right" aria-label="task tools">
-						<ul class="options-menu">
-							<li><a href="{{href}}/edit">Edit this task</a></li>
-							<li><a href="{{href}}/delete">Delete this task</a></li>
-							<li class="divider"></li>
-							<li><a href="{{href}}/run" data-test="run-task">Run Pa11y</a></li>
-						</ul>
-					</nav>
-				</div>
-			{{/unless}}
-		</li>
+			{{#if lastResult}}
+			<div class="gridview">
+				<ul class="clearfix list-unstyled floated-list task-stats">
+					{{#lastResult}}
+					<li class="danger" title="Number of errors ({{count.error}})">{{count.error}}<span
+							class="stat-type">Errors</span></li>
+					<li class="warning" title="Number of warnings ({{count.warning}})">{{count.warning}}<span
+							class="stat-type">Warnings</span></li>
+					<li class="info last" title="Number of notices ({{count.notice}})">{{count.notice}}<span
+							class="stat-type">Notices</span></li>
+					{{/lastResult}}
+				</ul>
+			</div>
+			<div class="last-run">Last run {{date-format lastResult.date format="DD MMM YYYY"}}</div>
+			{{else}}
+			<p class="no-results">No results</p>
+			{{/if}}
+		</a>
+		{{#unless ../readonly}}
+		<div class="btn-group options-button text-right">
+			<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown"><span
+					class="sr-only">Options</span><span class="glyphicon glyphicon-cog"></span></button>
+			<nav class="dropdown-menu pull-right" aria-label="task tools">
+				<ul class="options-menu">
+					<li><a href="{{href}}/edit">Edit this task</a></li>
+					<li><a href="{{href}}/delete">Delete this task</a></li>
+					<li class="divider"></li>
+					<li><a href="{{href}}/run" data-test="run-task">Run Pa11y</a></li>
+				</ul>
+			</nav>
+		</div>
+		{{/unless}}
+	</li>
 	{{/each}}
 </ul>

@@ -81,5 +81,11 @@ along with Pa11y Dashboard.  If not, see <http://www.gnu.org/licenses/>.
 	<script type="text/javascript" src="/js/result-sync.js?v={{version}}"></script>
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/js/vendor/flot/excanvas.min.js"></script><![endif]-->
 
+	<!-- Load export/import manager to allow users to back up and restore
+	     the IndexedDB persistence data. This script registers event
+	     listeners for export and import buttons defined in the tasks
+	     list template. -->
+	<script type="text/javascript" src="/js/db-export-import.js?v={{version}}"></script>
+
 </body>
 </html>
