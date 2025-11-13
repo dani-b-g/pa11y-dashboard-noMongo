@@ -7,10 +7,13 @@ Pa11y Dashboard is a web interface to the [Pa11y][pa11y] accessibility reporter;
 [![Build status][shield-build]][info-build]
 [![GPL-3.0 licensed][shield-license]][info-license]
 
+
 ![dashboard](https://user-images.githubusercontent.com/6110968/61603347-0bce1000-abf2-11e9-87b2-a53f91d315bb.jpg)
 ![results-page](https://user-images.githubusercontent.com/6110968/62183438-05851580-b30f-11e9-9bc4-b6a4823ae9e8.jpg)
 
 # Pa11y Dashboard — Local Execution (No MongoDB)
+
+- [Node.js][node]: Pa11y Dashboard 5 requires a stable (even-numbered) version of Node.js of 20 or above.
 
 This version of **Pa11y Dashboard** is customized to work entirely **locally**, without requiring MongoDB or the external Pa11y Webservice.  
 It performs accessibility audits using **Pa11y (CLI)** directly from Node.js and stores **tasks and results** persistently in the browser’s **IndexedDB**.
@@ -19,6 +22,7 @@ It performs accessibility audits using **Pa11y (CLI)** directly from Node.js and
 
 ## 🚀 Key Features
 
+### Pally Dashboard and Linux/Ubuntu
 - 🧱 **No MongoDB or external services** — runs fully offline.
 - ⚙️ **Local analysis** — executes Pa11y through Node.js.
 - 💾 **Browser persistence** — stores tasks and results in IndexedDB.
@@ -31,6 +35,7 @@ It performs accessibility audits using **Pa11y (CLI)** directly from Node.js and
 
 1. Install dependencies:
 
+## Setting up Pa11y Dashboard
     ```cmd
     npm install
     ```
@@ -122,6 +127,40 @@ source ~/.bashrc
 
 > 💡 These variables prevent Puppeteer from trying to download Chromium from `storage.googleapis.com`.
 
+
+## Useful resources
+
+- [Setting up An Accessibility Dashboard from Scratch with Pa11y on DigitalOcean](https://una.im/pa11y-dash/)
+- [Monitoring Web Accessibility Compliance With Pa11y Dashboard](https://www.lullabot.com/articles/monitoring-web-accessibility-compliance-with-pa11y-dashboard)
+
+## Troubleshooting
+
+### Common issues
+
+- `500` errors or `Could not connect to pa11y-webservice` messages are often related to MongoDB. Ensure that you have the [appropriate version of MongoDB](#installing-mongodb) installed, and that it's running - it doesn't always start automatically.
+- Error messages saying that pa11y-webservice isn't running may be due to dependency installation problems. Try deleting your `pa11y-dashboard/node_modules` directory and running `npm install` again.
+
+### Create a new issue
+
+Check the [issue tracker][issues] for similar issues before creating a new one. If the problem that you're experiencing is not covered by one of the existing issues, you can [create a new issue][issues-create]. Please include your node.js and MongoDB version numbers, and your operating system, as well as any information that may be useful in debugging the issue.
+
+## Support and migration
+
+> [!NOTE]
+> We maintain a [migration guide](MIGRATION.md) to help you migrate between major versions.
+
+When we release a new major version we will continue to support the previous major version for 6 months. This support will be limited to fixes for critical bugs and security issues. If you're opening an issue related to this project, please mention the specific version that the issue affects.
+
+The following table lists the major versions available and, for each previous major version, its end-of-support date, and its final minor version released.
+
+| Major version | Last minor release | Node.js support             | Support end date |
+| :------------ | :----------------- | :-------------------------- | :--------------- |
+| `5`           |                    | `20`, `22`, `24`            | ✅ Current major version |
+| `4`           | `4.2`              | `12`, `14`, `16`, `18`, `20`| May 2026         |
+| `3`           | `3.3`              | `8`, `10`                   | May 2022         |
+| `2`           | `2.4`              | `4`, `6`                    | January 2020     |
+| `1`           | `1.12`             | `0.10`, `0.12`, `4`, `6`    | December 2016    |
+
 📚 **References:**
 
 - [Puppeteer Troubleshooting Docs (pptr.dev)](https://pptr.dev/troubleshooting)  
@@ -162,6 +201,7 @@ Based on [Pa11y Dashboard](https://github.com/pa11y/pa11y-dashboard), customized
 ## License
 
 Pa11y Dashboard is licensed under the [GNU General Public License 3.0][info-license].  
+Copyright &copy; 2016-2025, Team Pa11y and contributors
 Copyright © 2025  
 Customized by **Daniel 'dani-b-g' Barriga**
 
