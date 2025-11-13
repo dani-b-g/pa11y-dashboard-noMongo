@@ -16,7 +16,13 @@
 
 const bodyParser = require('body-parser');
 const compression = require('compression');
-const createClient = require('pa11y-webservice-client-node');
+// Use our custom webservice client or the local in-memory service. If a
+// webservice URL is provided in the configuration the dashboard will
+// connect via HTTP using `webservice-client.js`. Otherwise we fall back
+// to the local in-memory implementation (`local-webservice.js`) which
+// stores tasks and results in memory and runs analyses using Pa11y.
+const createClient = require('./webservice-client');
+const createLocalWebservice = require('./local-webservice');
 const {EventEmitter} = require('events');
 const express = require('express');
 const hbs = require('express-hbs');
@@ -30,16 +36,26 @@ module.exports = initApp;
 function initApp(config, callback) {
 	config = defaultConfig(config);
 
-	let webserviceUrl = config.webservice;
-	if (typeof webserviceUrl === 'object') {
-		webserviceUrl = `http://${webserviceUrl.host}:${webserviceUrl.port}/`;
-	}
+    let webserviceUrl = config.webservice;
+    // If `webservice` is provided as an object (legacy format) convert
+    // it into a URL string. Otherwise assume it is a string or falsy.
+    if (typeof webserviceUrl === 'object' && webserviceUrl !== null) {
+        webserviceUrl = `http://${webserviceUrl.host}:${webserviceUrl.port}/`;
+    }
 
-	const app = new EventEmitter();
+    const app = new EventEmitter();
 
-	app.express = express();
-	app.server = http.createServer(app.express);
-	app.webservice = createClient(webserviceUrl);
+    app.express = express();
+    app.server = http.createServer(app.express);
+
+    // Decide which webservice backend to use. If a URL is provided,
+    // connect to the external Pa11y Webservice via HTTP. Otherwise use
+    // our in-memory service which does not require MongoDB.
+    if (webserviceUrl && typeof webserviceUrl === 'string' && webserviceUrl.trim() !== '') {
+        app.webservice = createClient(webserviceUrl);
+    } else {
+        app.webservice = createLocalWebservice();
+    }
 
 	loadMiddleware(app);
 
@@ -94,6 +110,10 @@ function loadMiddleware(app) {
 	app.express.use(bodyParser.urlencoded({
 		extended: true
 	}));
+
+	// Parse JSON bodies for API endpoints. This allows clients to POST
+	// JSON payloads, which we will use for the in-app analysis API.
+	app.express.use(bodyParser.json());
 }
 
 function loadViewEngine(app, config) {
@@ -154,6 +174,13 @@ function loadRoutes(app, config) {
 	require('./route/task/index')(app);
 	// Needs to be loaded after `/route/task/edit`
 	require('./route/result/index')(app);
+
+	// API routes for running analyses without the Pa11y Webservice. This
+	// provides a simple JSON interface at `/api/run` which clients can
+	// call to execute an accessibility test and receive results. Tasks
+	// and results are not persisted on the server; clients should store
+	// them in IndexedDB or another browser‑side database.
+	require('./route/api')(app);
 }
 
 function loadErrorHandling(app, config, callback) {

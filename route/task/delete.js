@@ -18,9 +18,17 @@ const presentTask = require('../../view/presenter/task');
 
 module.exports = function del(app) {
 	app.express.get('/:id/delete', ({params}, response, next) => {
-		app.webservice.task(params.id).get({}, (error, task) => {
-			if (error) {
-				return next();
+		const id = params.id;
+		app.webservice.task(id).get({}, (error, task) => {
+			// If the task is not found in memory (e.g. after a restart), render
+			// a placeholder page so that the client-side scripts can still
+			// populate the details from IndexedDB.
+			if (error || !task) {
+				const placeholder = { id: id, name: '', url: '', standard: '', ignore: [] };
+				return response.render('task/delete', {
+					task: presentTask(placeholder),
+					isTaskSubPage: true
+				});
 			}
 			response.render('task/delete', {
 				task: presentTask(task),
@@ -30,10 +38,11 @@ module.exports = function del(app) {
 	});
 
 	app.express.post('/:id/delete', ({params}, response, next) => {
-		app.webservice.task(params.id).remove(error => {
-			if (error) {
-				return next();
-			}
+		const id = params.id;
+		app.webservice.task(id).remove(error => {
+			// If the task is not found, ignore the error and still
+			// redirect. Client-side IndexedDB will remove the task when
+			// seeing the `deleted` query parameter.
 			response.redirect('/?deleted');
 		});
 	});

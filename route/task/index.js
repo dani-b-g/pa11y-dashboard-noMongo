@@ -20,11 +20,28 @@ const presentResultList = require('../../view/presenter/result-list');
 
 module.exports = function taskIndex(app) {
 	app.express.get('/:id', (request, response, next) => {
-		app.webservice.task(request.params.id).get({lastres: true}, (error, task) => {
-			if (error) {
-				return next();
+		const id = request.params.id;
+		app.webservice.task(id).get({lastres: true}, (error, task) => {
+			// If the task is missing from the in-memory store (for example
+			// after a restart), render a placeholder page. The client-side
+			// persistence scripts will populate the task details and
+			// results from IndexedDB.
+			if (error || !task) {
+				const placeholder = { id: id, name: '', url: '', standard: '', ignore: [] };
+				return response.render('task', {
+					task: presentTask(placeholder),
+					results: [],
+					mainResult: null,
+					added: (typeof request.query.added !== 'undefined'),
+					running: (typeof request.query.running !== 'undefined'),
+					ruleIgnored: (typeof request.query['rule-ignored'] !== 'undefined'),
+					ruleUnignored: (typeof request.query['rule-unignored'] !== 'undefined'),
+					hasOneResult: true,
+					isTaskPage: true
+				});
 			}
-			app.webservice.task(request.params.id).results({}, (webserviceError, results) => {
+			// Otherwise, load the task's results normally
+			app.webservice.task(id).results({}, (webserviceError, results) => {
 				if (webserviceError) {
 					return next(webserviceError);
 				}

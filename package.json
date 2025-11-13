@@ -11,7 +11,8 @@
   "author": "Team Pa11y",
   "contributors": [
     "Perry Harlock (http://www.phwebs.co.uk/)",
-    "Rowan Manning (http://rowanmanning.com/)"
+    "Rowan Manning (http://rowanmanning.com/)",
+    "Daniel Barriga (https://github.com/dani-b-g)"
   ],
   "repository": {
     "type": "git",
@@ -36,7 +37,8 @@
     "morgan": "~1.10.1",
     "nanoid": "~5.1.6",
     "pa11y-webservice": "^5.0.0",
-    "pa11y-webservice-client-node": "^5.0.0"
+    "pa11y-webservice-client-node": "^5.0.0",
+    "pa11y": "^7.0.0"
   },
   "devDependencies": {
     "bower": "^1.8.13",

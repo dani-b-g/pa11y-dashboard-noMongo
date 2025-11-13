@@ -1,165 +1,132 @@
 # Pa11y Dashboard
 
-Pa11y Dashboard is a web interface to the [Pa11y][pa11y] accessibility reporter; allowing you to focus on *fixing* issues rather than hunting them down.
+Pa11y Dashboard is a web interface to the [Pa11y][pa11y] accessibility reporter; allowing you to focus on _fixing_ issues rather than hunting them down.
 
 ![Version][shield-version]
 [![Node.js version support][shield-node]][info-node]
 [![Build status][shield-build]][info-build]
 [![GPL-3.0 licensed][shield-license]][info-license]
 
+
 ![dashboard](https://user-images.githubusercontent.com/6110968/61603347-0bce1000-abf2-11e9-87b2-a53f91d315bb.jpg)
 ![results-page](https://user-images.githubusercontent.com/6110968/62183438-05851580-b30f-11e9-9bc4-b6a4823ae9e8.jpg)
 
----
-
-## Requirements
+# Pa11y Dashboard — Local Execution (No MongoDB)
 
 - [Node.js][node]: Pa11y Dashboard 5 requires a stable (even-numbered) version of Node.js of 20 or above.
-- [MongoDB][mongodb]: This project depends on Pa11y Webservice, which stores test results in a MongoDB database and expects one to be available and running.
+
+This version of **Pa11y Dashboard** is customized to work entirely **locally**, without requiring MongoDB or the external Pa11y Webservice.  
+It performs accessibility audits using **Pa11y (CLI)** directly from Node.js and stores **tasks and results** persistently in the browser’s **IndexedDB**.
+
+---
+
+## 🚀 Key Features
 
 ### Pally Dashboard and Linux/Ubuntu
+- 🧱 **No MongoDB or external services** — runs fully offline.
+- ⚙️ **Local analysis** — executes Pa11y through Node.js.
+- 💾 **Browser persistence** — stores tasks and results in IndexedDB.
+- 📈 **Full run history** — shows number of executions and timestamps.
+- 🔁 **True persistence between restarts** — tasks and results remain saved.
+- 📊 **Live graphs** — display error, warning, and notice metrics.
+---
 
-Pa11y (and therefore this service) uses Headless Chrome to perform accessibility testing. On Linux and other Unix-like systems, Pa11y's attempt to install it as a dependency sometimes fails since additional operating system packages will be required. Your distribution's documentation should describe how to install these.
+## 💡 Local Execution
+
+1. Install dependencies:
 
 ## Setting up Pa11y Dashboard
+    ```cmd
+    npm install
+    ```
 
-In order to run Pa11y Dashboard, we recommend cloning this repository locally:
+2. Start the server:
 
-```sh
-git clone https://github.com/pa11y/pa11y-dashboard.git
+    ```bash
+    npm run start
+    ```
+
+3. Open your browser at:
+
+    ```
+    http://localhost:4000
+    ```
+
+3. Create new tasks and run them directly.  
+   The results are stored in **IndexedDB**, remaining available across browser sessions and server restarts.
+
+---
+
+## ⚠️ Possible Issues with Puppeteer Installation
+
+In some environments (such as corporate networks), Puppeteer may fail during installation when attempting to download **Chromium**.  
+To prevent this, you can instruct it to use your local installation of **Google Chrome** instead.
+
+### 🪟 Windows
+
+1. (Optional) Clean previous installation:
+
+    ```cmd
+    rmdir /s /q node_modules
+    del /q package-lock.json
+    ```
+
+2. Install dependencies:
+
+    ```cmd
+    npm install
+    ```
+
+3. Start the dashboard:
+
+    ```cmd
+    npm run start
+    ```
+4. Setup Environment:
+
+	```cmd
+	set "PUPPETEER_SKIP_DOWNLOAD=true"
+	set "PUPPETEER_EXECUTABLE_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe"
+	npm install
+	```
+
+### 🐧 Linux (Ubuntu/Debian)
+
+1. (Optional) Clean previous installation:
+
+    ```bash
+    rm -rf node_modules package-lock.json
+    ```
+
+2. Install dependencies:
+
+    ```bash
+    npm install
+    ```
+
+3. Start the dashboard:
+
+    ```bash
+    npm run start
+    ```
+4. Setup Environment:
+
+	```bash
+	export PUPPETEER_SKIP_DOWNLOAD=true
+	export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+	npm install
+	```
+
+To make the variables permanent:
+
+```bash
+echo 'export PUPPETEER_SKIP_DOWNLOAD=true' >> ~/.bashrc
+echo 'export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-Then installing the dependencies:
+> 💡 These variables prevent Puppeteer from trying to download Chromium from `storage.googleapis.com`.
 
-```sh
-cd pa11y-dashboard
-npm install
-```
-
-### Installing MongoDB
-
-Instructions for installing and running MongoDB are outside the scope of this document. When in doubt, please refer to the [MongoDB installation instructions](https://docs.mongodb.com/manual/installation/) for details of how to install and run MongoDB on your specific operating system. An example of the installation and configuration process for macOS follows.
-
-Pa11y Dashboard uses [MongoDB Node.js Driver][mongodb-package] version 3, which [may not support some features][mongodb-package-compatibility] of MongoDB versions 6 and beyond. We do however test against MongoDB versions 2 to 7, plus the latest major version, which at the time of writing is `8`.
-
-#### Example MongoDB installation for macOS
-
-On recent versions of macOS (10.13 or later), you can use [Homebrew] to install MongoDB Community Edition.
-
-Tap the MongoDB Homebrew Tap:
-
-```sh
-brew tap mongodb/brew
-```
-
-Install a supported Community version of MongoDB:
-
-```sh
-brew install mongodb-community@8.0
-```
-
-Start the MongoDB server:
-
-```sh
-brew services start mongodb/brew/mongodb-community@8.0
-```
-
-Check that the service has started properly:
-
-```console
-$ brew services list
-
-Name              Status  User       Plist
-mongodb-community started pa11y      /Users/pa11y/Library/LaunchAgents/homebrew.mxcl.mongodb-community.plist
-```
-
-### Configuring Pa11y Dashboard
-
-The last step before being able to run Pa11y Dashboard is to define a configuration for it. This can be done in two ways:
-
-#### Option 1: Using environment variables
-
-Each configuration can be set with an environment variable rather than a config file. For example to run the application on port `8080` you can use the following:
-
-```sh
-PORT=8080 node index.js
-```
-
-The [available configurations](#configurations) are documented in the next section.
-
-#### Option 2: Using config files
-
-You can store the configuration for Pa11y Dashboard on a JSON file. You can use a different configuration file for each environment you're planning to run Pa11y Dashboard on. You can choose a specific environment to run the application from by setting the `NODE_ENV` environment variable:
-
-```sh
-NODE_ENV=development node index.js
-```
-
-Three example files are provided in this repository, you can copy and customise them to your liking:
-
-```sh
-cp config/development.sample.json config/development.json
-```
-
-```sh
-cp config/production.sample.json config/production.json
-```
-
-```sh
-cp config/test.sample.json config/test.json
-```
-
-The [available configurations](#configurations) are documented in the next section.
-
-If you run into problems, check the [troubleshooting guide](#troubleshooting).
-
-## Configurations
-
-The boot configurations for Pa11y Dashboard are as follows. Look at the sample JSON files in the repo for example usage.
-
-### `port`
-
-*(number)* The port to run the application on. Set via a config file or the `PORT` environment variable.
-
-### `noindex`
-
-*(boolean)* If set to `true` (default), the dashboard will not be indexed by search engines. Set to `false` to allow indexing. Set via a config file or the `NOINDEX` environment variable.
-
-### `readonly`
-
-*(boolean)* If set to `true`, users will not be able to add, delete or run URLs (defaults to `false`). Set via a config file or the `READONLY` environment variable.
-
-### `siteMessage`
-
-*(string)* A message to display prominently on the site home page. Defaults to `null`.
-
-### `webservice`
-
-This can either be an object containing [Pa11y Webservice configurations][pa11y-webservice-config], or a string which is the base URL of a Pa11y Webservice instance you are running separately. If using environment variables, prefix the webservice vars with `WEBSERVICE_`.
-
-## Contributing
-
-There are many ways to contribute to Pa11y Dashboard, we cover these in the [contributing guide](CONTRIBUTING.md) for this repo.
-
-If you're ready to contribute some code, you'll need to clone the repo and get set up as outlined in the [setup guide](#setting-up-pa11y-dashboard). You'll then need to start the application in test mode with:
-
-```sh
-NODE_ENV=test node index.js
-```
-
-You'll now be able to run the following commands:
-
-```sh
-npm run lint   # Lint the code
-npm test       # Run all tests
-```
-
-To compile the client-side JavaScript and CSS, you'll need the following commands. Compiled code is committed to the repository.
-
-```sh
-make less    # Compile the site CSS from LESS files
-make uglify  # Compile and uglify the client-side JavaScript
-```
 
 ## Useful resources
 
@@ -194,26 +161,63 @@ The following table lists the major versions available and, for each previous ma
 | `2`           | `2.4`              | `4`, `6`                    | January 2020     |
 | `1`           | `1.12`             | `0.10`, `0.12`, `4`, `6`    | December 2016    |
 
+📚 **References:**
+
+- [Puppeteer Troubleshooting Docs (pptr.dev)](https://pptr.dev/troubleshooting)  
+- [Stack Overflow – Puppeteer Skip Download](https://stackoverflow.com/questions/51717944)
+
+---
+
+## ⚙️ Environment Variables
+
+| Variable                    | Description                                                                      |
+| --------------------------- | -------------------------------------------------------------------------------- |
+| `PUPPETEER_SKIP_DOWNLOAD`   | Prevents Puppeteer from downloading Chromium during `npm install`.               |
+| `PUPPETEER_EXECUTABLE_PATH` | Defines the path to the existing Chrome or Chromium executable.                 |
+
+---
+
+## 🧠 Technical Explanation
+
+- **Pa11y** performs audits using Puppeteer.  
+- **IndexedDB** keeps all tasks and results inside the browser, ensuring full data persistence even after restarting the server.  
+- When you restart the dashboard (`npm start`), all tasks, results, and charts are automatically reloaded from IndexedDB.
+
+---
+
+## ✅ Expected Results
+
+- Installation completes without errors on restricted networks.  
+- Dashboard works entirely offline.  
+- Tasks, runs, and results remain persistent.  
+- Accessibility audits run successfully without MongoDB or external APIs.
+
+---
+
+## 🧩 Credits
+
+Based on [Pa11y Dashboard](https://github.com/pa11y/pa11y-dashboard), customized for full local execution without MongoDB, with IndexedDB persistence and extended support for corporate proxy environments.
+
 ## License
 
 Pa11y Dashboard is licensed under the [GNU General Public License 3.0][info-license].  
 Copyright &copy; 2016-2025, Team Pa11y and contributors
+Copyright © 2025  
+Customized by **Daniel 'dani-b-g' Barriga**
 
-[homebrew]: https://brew.sh/
-[issues]: https://github.com/pa11y/pa11y-dashboard/issues?utf8=%E2%9C%93&q=is%3Aissue
-[issues-create]: https://github.com/pa11y/pa11y-dashboard/issues/new
-[mongodb]: http://www.mongodb.org/
-[mongodb-package]: https://www.npmjs.com/package/mongodb
-[mongodb-package-compatibility]: https://docs.mongodb.com/drivers/node/current/compatibility
-[node]: http://nodejs.org/
-[pa11y]: https://github.com/pa11y/pa11y
-[pa11y-webservice-config]: https://github.com/pa11y/webservice#configurations
-
-[info-node]: package.json
-[info-build]: https://github.com/pa11y/pa11y-dashboard/actions/workflows/tests.yml
-[info-license]: LICENSE
-
-[shield-version]: https://img.shields.io/github/package-json/v/pa11y/pa11y-dashboard.svg
-[shield-node]: https://img.shields.io/node/v/pa11y/pa11y-dashboard.svg
-[shield-build]: https://github.com/pa11y/pa11y-dashboard/actions/workflows/tests.yml/badge.svg
+[homebrew]: https://brew.sh/  
+[issues]: https://github.com/dani-b-g/pa11y-dashboard-noMongo/issues?utf8=%E2%9C%93&q=is%3Aissue  
+[issues-create]: https://github.com/dani-b-g/pa11y-dashboard-noMongo/issues/new  
+[mongodb]: http://www.mongodb.org/  
+[mongodb-package]: https://www.npmjs.com/package/mongodb  
+[mongodb-package-compatibility]: https://docs.mongodb.com/drivers/node/current/compatibility  
+[node]: http://nodejs.org/  
+[pa11y]: https://github.com/pa11y/pa11y  
+[pa11y-webservice-config]: https://github.com/pa11y/webservice#configurations  
+[info-node]: package.json  
+[info-build]: https://github.com/pa11y/pa11y-dashboard/actions/workflows/tests.yml  
+[info-license]: LICENSE  
+[shield-version]: https://img.shields.io/github/package-json/v/pa11y/pa11y-dashboard.svg  
+[shield-node]: https://img.shields.io/node/v/pa11y/pa11y-dashboard.svg  
+[shield-build]: https://github.com/pa11y/pa11y-dashboard/actions/workflows/tests.yml/badge.svg  
 [shield-license]: https://img.shields.io/badge/license-GPL%203.0-blue.svg
