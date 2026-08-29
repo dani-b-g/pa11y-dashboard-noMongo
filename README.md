@@ -1,6 +1,6 @@
 # Pa11y Dashboard
 
-Pa11y Dashboard is a web interface to the [Pa11y][pa11y] accessibility reporter; allowing you to focus on _fixing_ issues rather than hunting them down.
+Pa11y Dashboard is a web interface to the [Pa11y][pa11y] accessibility reporter, allowing you to focus on *fixing* issues rather than hunting them down.
 
 ![Version][shield-version]
 [![Node.js version support][shield-node]][info-node]
@@ -22,13 +22,25 @@ It performs accessibility audits using **Pa11y (CLI)** directly from Node.js and
 
 ## 🚀 Key Features
 
-### Pally Dashboard and Linux/Ubuntu
 - 🧱 **No MongoDB or external services** — runs fully offline.
 - ⚙️ **Local analysis** — executes Pa11y through Node.js.
 - 💾 **Browser persistence** — stores tasks and results in IndexedDB.
 - 📈 **Full run history** — shows number of executions and timestamps.
 - 🔁 **True persistence between restarts** — tasks and results remain saved.
 - 📊 **Live graphs** — display error, warning, and notice metrics.
+
+---
+
+## 🐧 Pa11y Dashboard and Linux/Ubuntu
+
+Pa11y Dashboard uses Puppeteer, which bundles its own Chromium binary. On some Linux distributions (notably Ubuntu 20.04 and above), this bundled binary may fail to launch because required shared libraries are not installed by default.
+
+There are two ways to resolve this:
+
+1. **Install the missing system dependencies** so that the bundled Chromium works. The list of required packages varies by distribution. Refer to [Puppeteer's troubleshooting guide](https://pptr.dev/troubleshooting#chrome-doesnt-launch-on-linux) for the current list.
+
+2. **Use a system-installed Chromium** instead of the bundled one. Install your distribution's Chromium package (e.g. `apt install chromium-browser`) and point Pa11y Dashboard to it via the `executablePath` option in [`chromeLaunchConfig`](#chromelaunchconfig), or the `CHROMIUM_EXECUTABLE` environment variable (e.g. `/usr/bin/chromium-browser`).
+
 ---
 
 ## 💡 Local Execution
@@ -127,11 +139,6 @@ source ~/.bashrc
 
 > 💡 These variables prevent Puppeteer from trying to download Chromium from `storage.googleapis.com`.
 
-
-## Useful resources
-
-- [Setting up An Accessibility Dashboard from Scratch with Pa11y on DigitalOcean](https://una.im/pa11y-dash/)
-- [Monitoring Web Accessibility Compliance With Pa11y Dashboard](https://www.lullabot.com/articles/monitoring-web-accessibility-compliance-with-pa11y-dashboard)
 
 ## Troubleshooting
 

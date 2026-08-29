@@ -58,37 +58,60 @@
      *
      * @param {string} taskId The ID of the task to run
      */
+    /**
+     * Read a task's real values out of the DOM. Both the task detail header and
+     * the task list card carry them in `data-*` attributes, because the visible
+     * text renders the URL through the `simplify-url` helper, which strips the
+     * scheme and would produce a URL Pa11y cannot load.
+     *
+     * @param {string} taskId The ID of the task to look for
+     * @returns {Object|null} A minimal task object, or null if not on the page
+     */
+    function readTaskFromDom(taskId) {
+        const selector = '.task-header[data-url], li[data-role="task"][data-url]';
+        const elements = document.querySelectorAll(selector);
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            const id = element.getAttribute('data-task-id');
+            // The detail header describes the only task on the page, so accept
+            // it even when it carries no id.
+            if (id && id !== taskId) {
+                continue;
+            }
+            const url = element.getAttribute('data-url');
+            if (!url) {
+                continue;
+            }
+            return {
+                id: taskId,
+                name: element.getAttribute('data-name') || '',
+                url: url,
+                standard: element.getAttribute('data-standard') || ''
+            };
+        }
+        return null;
+    }
+
     async function runTask(taskId) {
         let task = await Pa11yPersistence.getTask(taskId);
-        if (!task) {
-            // Attempt to extract minimal task info from the DOM. This can occur
-            // immediately after creating a task, before the history script
-            // has persisted it. On the task detail page, we can access
-            // the full URL and standard via the task header.
-            try {
-                const header = document.querySelector('.task-header');
-                if (header) {
-                    const nameEl = header.querySelector('h1');
-                    const urlEl = header.querySelector('p.h4 a');
-                    const stdEl = header.querySelector('p.h4 span.h5');
-                    const name = nameEl ? nameEl.textContent.trim() : null;
-                    const url = urlEl ? urlEl.getAttribute('href') : null;
-                    let standard = stdEl ? stdEl.textContent.trim() : null;
-                    if (standard && standard.charAt(0) === '(' && standard.charAt(standard.length - 1) === ')') {
-                        standard = standard.slice(1, -1);
-                    }
-                    if (name && url && standard) {
-                        task = { id: taskId, name: name, url: url, standard: standard };
-                        await Pa11yPersistence.saveTask(task);
-                    }
-                }
-            } catch (e) {
-                /* eslint no-console: "off" */
-                console.error('Failed to extract task details for run:', e);
+        // Repair records stored before the task URL was exposed in the DOM: those
+        // hold no `url` at all, which made `/api/run` answer "Missing url".
+        if (!task || !task.url) {
+            const domTask = readTaskFromDom(taskId);
+            if (domTask) {
+                task = Object.assign({}, task || {}, domTask);
+                await Pa11yPersistence.saveTask(task);
             }
         }
         if (!task) {
             alert('Task not found in local storage');
+            return;
+        }
+        if (!task.url) {
+            alert(
+                'This task has no URL stored locally. Open its page from the task ' +
+                'list, or edit the task to set its URL again, and then run it.'
+            );
             return;
         }
         // Build the payload for the API. Include any saved options

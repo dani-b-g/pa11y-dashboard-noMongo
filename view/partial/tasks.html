@@ -48,6 +48,7 @@ along with Pa11y Dashboard. If not, see
 	{{/unless}}
 	{{#each tasks}}
 	<li class="col-md-4 col-sm-6 task-card" data-test="task" data-role="task" data-task-id="{{id}}"
+		data-url="{{url}}" data-standard="{{standard}}" data-name="{{name}}"
 		data-keywords="{{lowercase name}} {{lowercase standard}} {{simplify-url url}}">
 		<a class="well task-card-link crunch-bottom" title="Details for URL {{simplify-url url}}" href="{{href}}">
 			<div class="gridview">

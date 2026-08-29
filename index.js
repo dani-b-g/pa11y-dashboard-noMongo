@@ -31,20 +31,37 @@ const kleur = require('kleur');
 const config = require('./config');
 const initDashboard = require('./app');
 
-process.on('SIGINT', () => {
-	console.log('\nGracefully shutting down from SIGINT (Ctrl-C)');
-	process.exit();
-});
-
 initDashboard(config, (error, app) => {
 	if (error) {
 		console.error(error.stack);
 		process.exit(1);
 	}
 
+	setupSignalHandlers(app);
+	logStartup(app);
+	setupErrorLogging(app);
+	warnAboutLegacyWebserviceConfig();
+});
+
+// Handle SIGINT and SIGTERM signals so hopefully in-flight requests and
+// Chromium processes are not orphaned on shutdown
+function setupSignalHandlers(app) {
+	function gracefulShutdown(signal) {
+		console.log(`\nGracefully shutting down (${signal})`);
+		app.server.close(() => {
+			console.log('HTTP server closed');
+			process.exit(0);
+		});
+	}
+	process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+	process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+}
+
+// Log both the intended URI and the actual bound address, which can differ when
+// the OS assigns a different port or the app binds to 0.0.0.0 vs localhost
+function logStartup(app) {
 	const mode = process.env.NODE_ENV;
 	const dashboardAddress = app.server.address();
-
 	console.log(kleur.underline().magenta('\nPa11y Dashboard started'));
 	console.log(kleur.grey('mode:               %s'), mode);
 	console.log(kleur.grey('uri (intended):     %s'), `http://localhost:${config.port}/`);
@@ -52,7 +69,11 @@ initDashboard(config, (error, app) => {
 		kleur.grey(`uri (actual, ${dashboardAddress.family}): %s`),
 		`http://${dashboardAddress.address}:${dashboardAddress.port}/`
 	);
+}
 
+// Route errors are emitted as events rather than crashing the process
+// so they need an explicit listener to be logged
+function setupErrorLogging(app) {
 	app.on('route-error', routeError => {
 		const stack = (routeError.stack ? routeError.stack.split('\n') : [routeError.message]);
 		const msg = kleur.red(stack.shift());
@@ -60,16 +81,17 @@ initDashboard(config, (error, app) => {
 		console.error(msg);
 		console.error(kleur.grey(stack.join('\n')));
 	});
+}
 
-    // The dashboard now defaults to an in-memory webservice which stores
-    // tasks and results locally and runs analyses via the Pa11y library.
-    // If `config.webservice` is provided as a URL string the dashboard will
-    // connect to that remote Pa11y Webservice. If it is provided as an
-    // object (legacy format) it will be ignored and the in-memory service
-    // will still be used. To connect to an external webservice set
-    // WEBSERVICE_URL or the `webservice` property in your config file.
-    if (typeof config.webservice === 'object') {
-        console.log(kleur.yellow('\nNote: A `webservice` configuration object was provided but the embedded webservice is disabled.'));
-        console.log(kleur.yellow('The dashboard is using the in-memory service. To connect to an external Pa11y Webservice, set WEBSERVICE_URL to its base URL.'));
-    }
-});
+// The dashboard now defaults to an in-memory webservice which stores tasks and
+// results locally and runs analyses via the Pa11y library. If `config.webservice`
+// is a URL string the dashboard connects to that remote Pa11y Webservice. If it
+// is an object (the legacy Mongo-flavoured format) it is ignored and the
+// in-memory service is used instead, so warn about it here.
+function warnAboutLegacyWebserviceConfig() {
+	if (typeof config.webservice !== 'object' || config.webservice === null) {
+		return;
+	}
+	console.log(kleur.yellow('\nNote: A `webservice` configuration object was provided but the embedded webservice is disabled.'));
+	console.log(kleur.yellow('The dashboard is using the in-memory service. To connect to an external Pa11y Webservice, set WEBSERVICE_URL to its base URL.'));
+}
