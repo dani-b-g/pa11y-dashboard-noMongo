@@ -30,15 +30,26 @@
             if (!id) {
                 return;
             }
-            // Extract name, url, standard from the card
-            const name = $(this).find('div.gridview p.h3').first().text().trim();
-            const url = $(this).find('div.gridview p.h4').first().text().trim();
-            let standard = $(this).find('div.gridview p.h5').first().text().trim();
-            // Standards appear wrapped in parentheses
-            if (standard.charAt(0) === '(' && standard.charAt(standard.length - 1) === ')') {
-                standard = standard.slice(1, -1);
+            // Prefer the `data-*` attributes: the visible text renders the URL
+            // through the `simplify-url` helper, which strips the scheme, so
+            // storing it would leave Pa11y with a URL it cannot load.
+            const name = this.getAttribute('data-name') ||
+                $(this).find('div.gridview p.h3').first().text().trim();
+            const url = this.getAttribute('data-url');
+            let standard = this.getAttribute('data-standard');
+            if (!standard) {
+                standard = $(this).find('div.gridview p.h5').first().text().trim();
+                // Standards appear wrapped in parentheses
+                if (standard.charAt(0) === '(' && standard.charAt(standard.length - 1) === ')') {
+                    standard = standard.slice(1, -1);
+                }
             }
-            const task = {id, name, url, standard};
+            const task = {id, name, standard};
+            // Never let a blank card overwrite a stored URL: the task routes
+            // render an empty placeholder for ids the server forgot on restart.
+            if (url) {
+                task.url = url;
+            }
             // Attempt to read last result summary from stats
             const errEl = $(this).find('li.danger').first();
             const warnEl = $(this).find('li.warning').first();
@@ -114,6 +125,9 @@
             li.className = 'col-md-4 col-sm-6 task-card';
             li.setAttribute('data-role', 'task');
             li.setAttribute('data-task-id', task.id);
+            li.setAttribute('data-url', task.url || '');
+            li.setAttribute('data-standard', task.standard || '');
+            li.setAttribute('data-name', task.name || '');
             li.setAttribute('data-keywords', (task.name.toLowerCase() + ' ' + task.standard.toLowerCase() + ' ' + simplifyUrl(task.url)).trim());
             const anchor = document.createElement('a');
             anchor.className = 'well task-card-link crunch-bottom';

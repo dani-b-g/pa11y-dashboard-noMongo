@@ -183,13 +183,26 @@
         Pa11yPersistence.getTask(taskId).then(function(task) {
             if (!task) {
                 try {
-                    var name = $('.task-header h1').first().text().trim();
-                    var url = $('.task-header p.h4 a').first().attr('href');
-                    var stdText = $('.task-header p.h4 span.h5').first().text().trim();
-                    var standard = stdText;
-                    // Remove parentheses if present
-                    if (standard.charAt(0) === '(' && standard.charAt(standard.length - 1) === ')') {
-                        standard = standard.slice(1, -1);
+                    // The header carries the task's real values in data
+                    // attributes. The visible text is not usable: it renders the
+                    // URL through the `simplify-url` helper, which strips the
+                    // scheme, and it is blank on the post-restart placeholder.
+                    var header = $('.task-header[data-url]').first();
+                    var url = header.attr('data-url');
+                    if (!url) {
+                        // Nothing trustworthy to persist. Saving a task without a
+                        // URL is what made `/api/run` reject the run with
+                        // "Missing url", so leave it to the task list to sync.
+                        return;
+                    }
+                    var name = header.attr('data-name') || $('.task-header h1').first().text().trim();
+                    var standard = header.attr('data-standard');
+                    if (!standard) {
+                        standard = $('.task-header p.h4 span.h5').first().text().trim();
+                        // Remove parentheses if present
+                        if (standard.charAt(0) === '(' && standard.charAt(standard.length - 1) === ')') {
+                            standard = standard.slice(1, -1);
+                        }
                     }
                     var newTask = { id: taskId, name: name, url: url, standard: standard };
                     // Optionally capture ignore list, timeout, etc. if available later
