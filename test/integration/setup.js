@@ -17,7 +17,28 @@
 const createNavigator = require('./helper/navigate');
 const createWebserviceClient = require('pa11y-webservice-client-node');
 
-const loadFixtures = require('pa11y-webservice/data/fixture/load');
+// `pa11y-webservice` is no longer a dependency of this fork: nothing at runtime
+// starts an embedded webservice. This suite still targets the old Mongo-backed
+// architecture, so it needs the package installed alongside a MongoDB instance
+// and a webservice on WEBSERVICE_PORT. Resolve it lazily to fail with an
+// explanation rather than a bare MODULE_NOT_FOUND at import time.
+function loadFixtures(...args) {
+	let load;
+	try {
+		load = require('pa11y-webservice/data/fixture/load');
+	} catch (error) {
+		if (error.code !== 'MODULE_NOT_FOUND') {
+			throw error;
+		}
+		throw Error(
+			'This integration suite exercises the legacy Mongo-backed architecture and ' +
+			'requires `pa11y-webservice`, which this fork no longer depends on. ' +
+			'Install it explicitly (`npm install pa11y-webservice`) and provide a MongoDB ' +
+			'instance to run these tests.'
+		);
+	}
+	return load(...args);
+}
 
 const config = {
 	host: process.env.HOST || '0.0.0.0',

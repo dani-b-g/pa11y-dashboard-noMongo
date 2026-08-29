@@ -25,10 +25,27 @@ if (fs.existsSync(jsonPath)) {
 } else if (fs.existsSync(jsPath)) {
 	module.exports = require(jsPath);
 } else {
+    // Upstream's CHROMIUM_FLAGS/CHROMIUM_EXECUTABLE options, kept as a
+    // top-level `chromeLaunchConfig` because this fork has no embedded
+    // webservice to attach them to.
+    const chromiumFlags = env('CHROMIUM_FLAGS', undefined);
+    const chromiumExecutable = env('CHROMIUM_EXECUTABLE', undefined);
+    let chromeLaunchConfig;
+    if (chromiumFlags || chromiumExecutable) {
+        chromeLaunchConfig = {};
+        if (chromiumFlags) {
+            chromeLaunchConfig.args = chromiumFlags.split(',');
+        }
+        if (chromiumExecutable) {
+            chromeLaunchConfig.executablePath = chromiumExecutable;
+        }
+    }
+
     module.exports = {
         port: Number(env('PORT', '4000')),
         noindex: env('NOINDEX', 'true') === 'true',
         readonly: env('READONLY', 'false') === 'true',
+        chromeLaunchConfig,
         // The default `webservice` configuration is now undefined, meaning
         // the dashboard will run with the in-memory service. If you
         // specify WEBSERVICE_URL, its value will be used to connect to
